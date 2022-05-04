@@ -11,6 +11,17 @@
 	const connectWG = () => {
 		return 0;
 	};
+	const sendKey = async () => {
+		fetch(`${WGhost}/api/sendKeyId`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				keyID: keyID
+			})
+		})
+	}
 
 	let kme = {
 		target_KME_ID: ''
@@ -82,7 +93,7 @@
 				<button on:click={connectWG}
 								class='row-start-2 col-start-1 bg-[#00a499] w-8/12 h-12 text-white m-2'>Manual reconnect
 				</button>
-				<button on:click={() => {goto('/')}}
+				<button on:click={sendKey}
 								class='row-start-2 col-start-2 bg-[#00a499] w-8/12 h-12 text-white m-2'>Manual keyID send
 				</button>
 				{#if wg.status === 'disconnected'}
