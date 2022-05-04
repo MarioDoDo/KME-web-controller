@@ -3,29 +3,31 @@
 
 	let type = '';
 	let host = '';
+	let slaveID = '';
 
 	try {
 		if (history.state.host) {
 			host = history.state.host;
+			type = history.state.type !== 'master';
+			slaveID = history.state.slaveID;
 		}
 	} catch (err) {
 		host = '';
 	}
 
-	const validate = (str) => {
+	const validateURL = (str) => {
 		return str.match(/^((https?:\/\/)|(www.))(?:([a-zA-Z]+)|(\d+\.\d+.\d+.\d+)):\d+$/);
 	};
 
-
 	const connect = () => {
-		if (validate(host)) {
+		if (validateURL(host)) {
 			if (type) {
 				goto('/slave', {
-					state: { host: host }
+					state: { host: host, slaveID: slaveID }
 				});
 			} else {
 				goto('/master', {
-					state: { host: host }
+					state: { host: host, slaveID: slaveID }
 				});
 			}
 		} else {
@@ -34,7 +36,7 @@
 	};
 </script>
 <div class='grid justify-items-center items-center w-screen h-screen'>
-	<div class='grid grid-cols-3 grid-rows-3 justify-items-center items-center md:w-3/4 w-full h-80 bg-white'>
+	<div class='grid grid-cols-3 grid-rows-4 justify-items-center items-center md:w-3/4 w-full h-80 bg-white'>
 
 		<p class='col-start-1 justify-self-end'>MASTER</p>
 		<label class='switch col-start-2'>
@@ -43,17 +45,23 @@
 		</label>
 		<p class='col-start-3 justify-self-start'>SLAVE</p>
 
-		{#if !validate(host) && host.length !== 0}
-			<label class='col-start-1 row-start-2 text-red-500' for='KMEHost'>KME host</label>
-		{:else if validate(host)}
-			<label class='col-start-1 row-start-2 text-green-500' for='KMEHost'>KME host</label>
+		{#if !validateURL(host) && host.length !== 0}
+			<label class='col-start-1 row-start-2 text-red-500 text-lg' for='KMEHost'>KME host</label>
+		{:else if validateURL(host)}
+			<label class='col-start-1 row-start-2 text-green-500 text-lg' for='KMEHost'>KME host</label>
 		{:else}
-			<label class='col-start-1 row-start-2 text-black' for='KMEHost'>KME host</label>
+			<label class='col-start-1 row-start-2 text-black text-lg' for='KMEHost'>KME host</label>
 		{/if}
-		<input bind:value={host} class='col-start-2 row-start-2 col-span-2 bg-gray-200 w-3/4 h-12' id='KMEHost' type='url'
-					 placeholder='http://192.168.1.2:3001' on:keydown={(e) => {if(e.keyCode === 13){connect()}}}>
+		<input bind:value={host} class='col-start-2 row-start-2 col-span-2 bg-gray-200 w-3/4 h-12' id='KMEHost' type='text'
+					 placeholder='http://localhost:3001'>
 
-		<button on:click={connect} class='col-span-3 row-start-3 col-start-1 bg-[#00a499] w-5/6 h-12 text-white'>CONNECT
+			<label class='col-start-1 row-start-3 text-black text-lg' for='slaveID'>slave SAE ID</label>
+
+		<input bind:value={slaveID} class='col-start-2 row-start-3 col-span-2 bg-gray-200 w-3/4 h-12' id='slaveID'
+					 type='text'
+					 placeholder='MMMMNNNNOOOOPPPP' on:keydown={(e) => {if(e.keyCode === 13){connect()}}}>
+
+		<button on:click={connect} class='col-span-3 row-start-4 col-start-1 bg-[#00a499] w-5/6 h-12 text-white'>CONNECT
 		</button>
 	</div>
 </div>
