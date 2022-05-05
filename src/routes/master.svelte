@@ -2,19 +2,6 @@
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
 
-	import { newKeyId } from './api/sendKeyId';
-
-	let out = "";
-	newKeyId.subscribe(value => {
-		out = value;
-		console.log(out);
-	});
-
-	let keyID = 'none';
-	const getKey = () => {
-		return 0;
-	};
-
 	let wg = {
 		status: 'disconnected'
 	};
@@ -22,16 +9,15 @@
 	const connectWG = () => {
 		return 0;
 	};
+
+	let keyID = 'none';
+	const getKey = () => {
+		keyID = Math.random().toString(36).substring(2, 15);
+		sendKey();
+	};
+	let ws;
 	const sendKey = async () => {
-		fetch(`${WGhost}/api/sendKeyId`, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({
-				keyID: keyID
-			})
-		})
+		ws.send(keyID);
 	}
 
 	let kme = {};
@@ -40,8 +26,18 @@
 			method: 'GET'
 		}).then(res => res.json());
 	};
+
 	onMount(() => {
 		getKMEStatus();
+		ws = new WebSocket(history.state.SAEhost);
+
+		ws.onopen = () => {
+			ws.send(keyID);
+		};
+
+		ws.onmessage = (msg) =>{
+			keyID = msg.data;
+		};
 	});
 
 	const checkForHistory = () => {
@@ -60,8 +56,8 @@
 			class='grid lg:grid-cols-3 grid-cols-1 grid-rows-4 justify-items-center items-center md:w-3/4 w-full md:h-3/4 h-full bg-white'>
 
 			<button
-				on:click={() => {goto('/', {state: {host: history.state.host, type: 'master', slaveID: history.state.slaveID}})}}
-				class='col-span-1 row-start-1 col-start-1 justify-self-start self-start bg-[#00a499] w-1/4 h-12 text-white'>
+				on:click={() => {goto('/', {state: {host: history.state.host, type: 'master', slaveID: history.state.slaveID, SAEhost: history.state.SAEhost}})}}
+				class='col-span-1 row-start-1 col-start-1 justify-self-start self-start bg-[#00a499] w-1/4 h-12 text-white m-4'>
 				Change host
 			</button>
 
@@ -82,7 +78,7 @@
 								class='bg-[#00a499] w-3/4 h-12 text-white m-2'>Get key with keyID
 				</button>
 				<button on:click={getKMEStatus}
-								class='bg-[#00a499] w-3/4 h-12 text-white m-2'>Update
+								class='bg-[#00a499] w-3/4 h-12 text-white m-2'>Reconnect KME
 				</button>
 				<p>Actual key ID: <span class='text-[#00a499]'>{keyID}</span></p>
 			</div>
